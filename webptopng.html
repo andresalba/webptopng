@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			background-color: #27374D;
+		}
+
+		main {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		input[type="file"] {
+			display: none;
+		}
+
+		main>label.lbl {
+			font-size: 1.4rem;
+			color: white;
+			font-weight: 500;
+			background-color: #80002B;
+			border-radius: 10px;
+			border: 2px solid white;
+			padding: 6px 12px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Png Converter</h1>
+	<main>
+		<label class="lbl">
+			<input type="file" name="image" class="inp" />Pick an image
+		</label>
+	</main>
+
+	<script>
+		const png_converter = ((imageFileBlob, options) => {
+			function converter(imageFileBlob, options) {
+				options = options || {}
+				//create canvas and put the image there
+				const canvas = document.createElement('canvas')
+				const context = canvas.getContext('2d')
+				const imageElement = createImage()
+				const downloadLink = document.createElement('a')
+				//create image blob
+				function createImage(options) {
+					options = options || {}
+					const img = document.createElement('img')
+					img.style.width = options.width ? `${options.width}px` : "auto"
+					img.style.height = options.height ? `${options.height}px` : "auto"
+					return img
+				}
+				function updateDownloadLink(webpFileName, pngBlob) {
+					const linkElement = downloadLink
+					const pngFileName = webpFileName.replace(/webp/i, "png")
+					linkElement.setAttribute('download', pngFileName)
+					linkElement.href = URL.createObjectURL(pngBlob)
+					downloadLink.click()
+				}
+				function process() {
+					const imageUrl = URL.createObjectURL(imageFileBlob)
+					imageElement.addEventListener('load', e => {
+						canvas.width = e.target.width
+						canvas.height = e.target.height
+						context.drawImage(e.target, 0, 0, e.target.width, e.target.height)
+						canvas.toBlob(
+							updateDownloadLink.bind(window, imageFileBlob.name),
+							"image/png"
+						)
+					})
+					imageElement.src = imageUrl
+				}
+				return {
+					process: process,
+
+				}
+			}
+			return converter
+		})()
+
+		//HTML image file field
+		const imageFileElement = document.querySelector('.inp')
+
+		//Add file change event handler
+		imageFileElement.addEventListener('change', event => {
+			const webpImageFileBlob = event.currentTarget.files[0]
+			//if is webp
+			if (webpImageFileBlob.type === 'image/webp') {
+				png_converter(webpImageFileBlob).process()
+			} else {
+				alert('wrong file type')
+			}
+		})
+
+	</script>
+
+</body>
+
+</html>
